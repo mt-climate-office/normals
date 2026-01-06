@@ -9,7 +9,7 @@ make_map_data(f, shp, attr_id, proj = mt_state_plane, fun = "mean")
 \arguments{
 \item{f}{The preprocessed .Rds file to read from.}
 
-\item{shp}{The [\link{sf}] object to use to aggregate data by.}
+\item{shp}{The [\link[sf:sf]{sf::sf}] object to use to aggregate data by.}
 
 \item{attr_id}{The column in \code{shp} that will be used to aggregate by}
 

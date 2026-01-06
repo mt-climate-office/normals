@@ -4,7 +4,13 @@
 \alias{fetch_gridmet}
 \title{fetch_gridmet}
 \usage{
-fetch_gridmet(data_dir, variables, start_year = 1991, end_year = 2020)
+fetch_gridmet(
+  data_dir,
+  variables,
+  start_year = 1991,
+  end_year = 2020,
+  force_dl = FALSE
+)
 }
 \arguments{
 \item{data_dir}{Directory to save data to. If the directory doesn't exist,

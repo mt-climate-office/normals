@@ -17,8 +17,3 @@ Save out an \code{rds} file of interannual variability
 \description{
 Calculate interannual precipitation variability
 }
-\examples{
-\notrun{
-1+1
-}
-}

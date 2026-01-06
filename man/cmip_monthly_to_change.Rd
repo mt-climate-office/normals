@@ -20,6 +20,9 @@ cmip_monthly_to_change(files, pattern, fun, tsfm, is.annual, out_dir)
 
 \item{out_dir}{The directory to save the files out to.}
 }
+\value{
+a file path
+}
 \description{
 cmip_monthly_to_change
 }

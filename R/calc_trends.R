@@ -34,7 +34,7 @@ make_trend_string <- function(r, shp, attr_id, fun="mean", start_year=1951, end_
         magrittr::extract('year') %>%
         magrittr::multiply_by(10) %>%
         round(2) %>%
-        paste("ºF per decade")
+        paste("\u00B0F per decade")
     )
 }
 

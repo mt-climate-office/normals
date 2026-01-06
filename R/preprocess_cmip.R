@@ -510,10 +510,9 @@ apply_heatmap_by_scenario <- function(dat, hot, title_txt) {
 #' @param is.annual Boolean of whether the CMIP files are already aggregated to a annual timescale.
 #' @param out_dir The directory to save the files out to.
 #'
-#' @return
+#' @return a file path
 #' @export
 #'
-#' @examples
 cmip_monthly_to_change <- function(files, pattern, fun, tsfm, is.annual, out_dir) {
 
   out_name = file.path(
@@ -550,10 +549,6 @@ cmip_monthly_to_change <- function(files, pattern, fun, tsfm, is.annual, out_dir
 #' @return Save out an `rds` file of interannual variability
 #' @export
 #'
-#' @examples
-#' \notrun{
-#' 1+1
-#' }
 cmip_ppt_interannual_variability <- function(files, out_dir) {
 
   out_name = file.path(
