@@ -19,9 +19,13 @@ write_as_cog <- function(x, filename) {
   terra::writeRaster(
     x = x,
     filename = filename,
+    filetype = "COG",
     overwrite = TRUE,
-    gdal = c("COMPRESS=DEFLATE",
-             "of=COG"),
+    gdal = c("COMPRESS=ZSTD",
+             "LEVEL=13",
+             "NUM_THREADS=ALL_CPUS",
+             "of=COG",
+             "OVERVIEWS=NONE"),
     memfrac = 0.9
   )
 }
