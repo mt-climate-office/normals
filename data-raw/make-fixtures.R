@@ -5,9 +5,20 @@
 # tests/testthat/test-golden-*.R recompute every expected output with the 2.0
 # calls and compare them exactly.
 #
-# Usage (from the package root):
-#   MCO_SNODAS=/path/to/mco-snodas MCO_SNOTEL=/path/to/mco-snotel \
-#     Rscript data-raw/make-fixtures.R [--large]
+# Run it on the pinned fixture platform (API.md section 7), the image of
+# data-raw/fixtures.Dockerfile, from the package root:
+#
+#   docker build --platform linux/amd64 -f data-raw/fixtures.Dockerfile -t normals-fixtures data-raw
+#   docker run --rm --platform linux/amd64 \
+#     -v "$PWD":"$PWD" -w "$PWD" \
+#     -v "$MCO_SNODAS":"$MCO_SNODAS":ro -v "$MCO_SNOTEL":"$MCO_SNOTEL":ro \
+#     (and, for git worktrees, their gitdirs, read-only, at the same paths) \
+#     -e MCO_SNODAS -e MCO_SNOTEL -e GIT_CONFIG_COUNT=1 \
+#     -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0='*' \
+#     normals-fixtures Rscript data-raw/make-fixtures.R [--large]
+#
+#   MCO_FIXTURES      sections to rebuild (default "snotel,zonal,grid")
+#   MCO_FIXTURES_DIR  output directory (default tests/testthat/fixtures)
 #
 #   MCO_SNODAS  an mco-snodas checkout at 9b45d74 (main; src/ and the R used
 #               here unchanged since 62fe19a)
@@ -48,7 +59,7 @@ stopifnot(dir.exists(SNODAS), dir.exists(SNOTEL), file.exists("DESCRIPTION"))
 
 CACHE <- "data-raw/cache"
 large <- "data-raw/fixtures-large/grid50.rds"
-FIX   <- "tests/testthat/fixtures"
+FIX   <- Sys.getenv("MCO_FIXTURES_DIR", "tests/testthat/fixtures")
 dir.create(FIX, showWarnings = FALSE, recursive = TRUE)
 WORK  <- file.path(CACHE, "work")   # scratch for the pipelines' file I/O
 unlink(WORK, recursive = TRUE)
@@ -291,6 +302,7 @@ zonal_path <- save_fixture(zonal_fixture, "zonal")
 # dates have one reference year fewer (D3).
 
 source("tests/testthat/helper-grid.R")
+source("tests/testthat/helper-platform.R")
 
 grid_fixture_for <- function(nr, nc) {
   cube <- grid_cube(nr, nc)
@@ -379,7 +391,7 @@ if (LARGE) {
   dir.create("data-raw/fixtures-large", showWarnings = FALSE)
   saveRDS(materialize(grid_fixture_for(50L, 50L)), large, version = 3, compress = "xz")
   message("  wrote ", large, " (", format(file.size(large) / 2^20, digits = 3), " MiB)")
-  saveRDS(sub(" .*", "", system2("shasum", c("-a", "256", shQuote(large)), stdout = TRUE)),
+  saveRDS(golden_sha256(large),
           file.path(FIX, "grid50-sha256.rds"), version = 3)
 }
 }
@@ -389,7 +401,7 @@ if (LARGE) {
 snotel_path <- file.path(FIX, "snotel.rds")
 zonal_path  <- file.path(FIX, "zonal.rds")
 grid_path   <- file.path(FIX, "grid.rds")
-sha256 <- function(f) sub(" .*", "", system2("shasum", c("-a", "256", shQuote(f)), stdout = TRUE))
+sha256 <- golden_sha256
 si <- sessionInfo()
 manifest <- list(
   created = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
@@ -411,16 +423,24 @@ manifest <- list(
     input_md5 = as.list(tools::md5sum(file.path(CACHE, c("snotel_reference_wy2027.parquet",
                                                          "snotel_archive.parquet"))))),
   platform = list(
+    image = Sys.getenv("NORMALS_FIXTURE_IMAGE", "(not given)"),
     R = R.version.string, platform = R.version$platform, os = si$running,
     blas = si$BLAS, lapack = si$LAPACK, la_version = La_version(),
+    openblas = list(coretype = Sys.getenv("OPENBLAS_CORETYPE"),
+                    num_threads = Sys.getenv("OPENBLAS_NUM_THREADS"),
+                    omp_num_threads = Sys.getenv("OMP_NUM_THREADS")),
+    cpu = tryCatch(sub(".*: ", "", grep("^model name", readLines("/proc/cpuinfo"), value = TRUE)[1]),
+                   error = \(e) NA_character_),
+    repos = getOption("repos")[["CRAN"]],
     compiler = system2(file.path(R.home("bin"), "R"), c("CMD", "config", "CXX"), stdout = TRUE),
     packages = lapply(c(Rcpp = "Rcpp", RcppArmadillo = "RcppArmadillo", mgcv = "mgcv",
                         arrow = "arrow", terra = "terra", dplyr = "dplyr", lubridate = "lubridate"),
                       \(p) as.character(utils::packageVersion(p)))),
   comparison = paste(
-    "identical() on the fixture's platform. On another platform, results that pass",
-    "through linear algebra or libm may differ in the last bits: the tests report the",
-    "largest relative difference and fail above 1e-12 (API.md section 7)."),
+    "identical() on the fixture platform (platform.rds: R, architecture, BLAS, LAPACK,",
+    "OpenBLAS kernel and threads). Elsewhere, the smoothed outputs (through the spline's",
+    "linear algebra) are skipped; the empirical, fitted and percentile outputs are",
+    "compared everywhere, identical() first, else within 1e-12 relative (API.md section 7)."),
   fixtures = lapply(stats::setNames(c(snotel_path, zonal_path, grid_path),
                                     basename(c(snotel_path, zonal_path, grid_path)))[
                                       file.exists(c(snotel_path, zonal_path, grid_path))],
@@ -431,8 +451,6 @@ manifest <- list(
 )
 jsonlite::write_json(manifest, file.path(FIX, "MANIFEST.json"), auto_unbox = TRUE, pretty = TRUE)
 # The platform fingerprint the tests compare against (no JSON reader needed).
-saveRDS(list(R = R.version.string, platform = R.version$platform, blas = si$BLAS,
-             lapack = si$LAPACK),
-        file.path(FIX, "platform.rds"), version = 3)
+saveRDS(golden_fingerprint(), file.path(FIX, "platform.rds"), version = 3)
 unlink(WORK, recursive = TRUE)
 message("done")

@@ -14,13 +14,12 @@ grid50_asset <- function() {
                    error = \(e) FALSE, warning = \(w) FALSE)
     if (!ok) skip("the grid50.rds release asset is not published")
   }
-  got <- tryCatch(system2("shasum", c("-a", "256", shQuote(path)), stdout = TRUE),
-                  error = \(e) NULL, warning = \(w) NULL)
-  if (is.null(got)) skip("shasum is not available to check the asset")
-  if (sub(" .*", "", got) != sha) fail("grid50.rds does not match its sha256 in fixtures/grid50-sha256.rds")
+  if (golden_sha256(path) != sha) fail("grid50.rds does not match its sha256 in fixtures/grid50-sha256.rds")
   readRDS(path)
 }
 
 test_that("gridded normals match mco-snodas (50 x 50 release asset)", {
-  grid_golden_check(grid50_asset())
+  fx <- grid50_asset()
+  grid_golden_check(fx)
+  grid_golden_check_smoothed(fx)
 })

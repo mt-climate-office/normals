@@ -1,5 +1,5 @@
 {
-  "created": "2026-11-01T21:44:49Z",
+  "created": "2026-11-01T22:24:13Z",
   "generator": "data-raw/make-fixtures.R",
   "sources": {
     "mco-snodas": {
@@ -23,42 +23,50 @@
     }
   },
   "platform": {
-    "R": "R version 4.6.1 (2026-06-24)",
-    "platform": "aarch64-apple-darwin23",
-    "os": "macOS Golden Gate 27.0.1",
-    "blas": "/Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib",
-    "lapack": "/Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib",
-    "la_version": "3.12.1",
-    "compiler": "clang++ -arch arm64 -std=gnu++20",
+    "image": "rocker/r-ver:4.5.3@sha256:f5a72ffeea7ed592b2a5990f87101beef8ef3cae0e4ff7327088e80368f0aef9 + data-raw/fixtures.Dockerfile",
+    "R": "R version 4.5.3 (2026-03-11)",
+    "platform": "x86_64-pc-linux-gnu",
+    "os": "Ubuntu 24.04.5 LTS",
+    "blas": "/usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3",
+    "lapack": "/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so",
+    "la_version": "3.12.0",
+    "openblas": {
+      "coretype": "Nehalem",
+      "num_threads": "1",
+      "omp_num_threads": "1"
+    },
+    "cpu": "VirtualApple @ 2.50GHz",
+    "repos": "https://p3m.dev/cran/__linux__/noble/2026-04-23",
+    "compiler": "g++ -std=gnu++17",
     "packages": {
-      "Rcpp": "1.1.2",
-      "RcppArmadillo": "15.4.2.1",
+      "Rcpp": "1.1.1.1",
+      "RcppArmadillo": "15.2.6.1",
       "mgcv": "1.9.4",
-      "arrow": "25.0.1",
-      "terra": "1.9.46",
+      "arrow": "23.0.1.2",
+      "terra": "1.9.11",
       "dplyr": "1.2.1",
       "lubridate": "1.9.5"
     }
   },
-  "comparison": "identical() on the fixture's platform. On another platform, results that pass through linear algebra or libm may differ in the last bits: the tests report the largest relative difference and fail above 1e-12 (API.md section 7).",
+  "comparison": "identical() on the fixture platform (platform.rds: R, architecture, BLAS, LAPACK, OpenBLAS kernel and threads). Elsewhere, the smoothed outputs (through the spline's linear algebra) are skipped; the empirical, fitted and percentile outputs are compared everywhere, identical() first, else within 1e-12 relative (API.md section 7).",
   "fixtures": {
     "snotel.rds": {
-      "bytes": 588880,
-      "sha256": "a1f2c767833d1df69b9f0d131d5c655948f428c980be428d249949665bf3e269"
+      "bytes": 589316,
+      "sha256": "d25dd421d5ab0edfcc60a04b744a4d5c5ceb8dc924696205a160de2e7b64774a"
     },
     "zonal.rds": {
-      "bytes": 499580,
-      "sha256": "630a32db7166b0bfe0b9783bb22752a3688b04b687cd61d5d57a6fbec4f71248"
+      "bytes": 500492,
+      "sha256": "c47053dedb12b605600333b85b401d1e3eeec0a87a99202bfb01a6b1c1503db2"
     },
     "grid.rds": {
-      "bytes": 576172,
-      "sha256": "f6b931b50ca5a43be3ba51dcf8ee7dc0b4c7446cc38b90267017325ad98125d3"
+      "bytes": 577700,
+      "sha256": "f1d84942039a4a2dd65cb4dc5eba1a34a438213a8a27d6dc59413e8b41d04da1"
     }
   },
   "release_assets": {
     "grid50.rds": {
-      "bytes": 3445584,
-      "sha256": "be3ae591d3635e97ce209f8f010b86c787d8a9c1743e9407775a4222f7f2a922",
+      "bytes": 3446212,
+      "sha256": "d29366b89d7e4d1f3c7ddbd10005f46034715f5056070dc1e8d2fdbb7a5b194f",
       "url": "https://github.com/mt-climate-office/normals/releases/download/fixtures-v1/grid50.rds"
     }
   }

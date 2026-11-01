@@ -7,20 +7,24 @@ golden <- function(name) {
   readRDS(path)
 }
 
-# TRUE when this R session is the fixtures' platform (R version, OS
-# architecture, BLAS and LAPACK).
+# TRUE when this R session is the fixtures' platform (helper-platform.R).
 golden_platform <- local({
   same <- NULL
   function() {
-    if (is.null(same)) {
-      fp <- readRDS(test_path("fixtures", "platform.rds"))
-      si <- utils::sessionInfo()
-      same <<- identical(fp, list(R = R.version.string, platform = R.version$platform,
-                                  blas = si$BLAS, lapack = si$LAPACK))
-    }
+    if (is.null(same))
+      same <<- identical(readRDS(test_path("fixtures", "platform.rds")), golden_fingerprint())
     same
   }
 })
+
+# The smoothed outputs pass through the spline's linear algebra (LAPACK), so
+# they are compared only on the fixture platform (API.md section 7).
+skip_smoothed_off_platform <- function() {
+  if (!golden_platform())
+    skip(paste("smoothed golden comparisons run only on the pinned fixture platform",
+               "(data-raw/fixtures.Dockerfile); this session's R/BLAS/LAPACK/OpenBLAS",
+               "fingerprint differs from tests/testthat/fixtures/platform.rds"))
+}
 
 # Largest relative difference between the doubles of two objects that are
 # otherwise alike (same structure, types, NA and NaN positions); NA if they
@@ -46,9 +50,9 @@ golden_rel_diff <- function(new, old) {
 }
 
 # Exact on the fixtures' platform: identical(), which tells NA from NaN and
-# integer from double. Elsewhere (API.md section 7) a result may differ in its
-# last bits through linear algebra or libm: identical() is tried first, then
-# the largest relative difference is reported and must not exceed 1e-12.
+# integer from double. Elsewhere (empirical, fitted and percentile outputs
+# only; API.md section 7) identical() is tried first, then the largest
+# relative difference is reported and must not exceed 1e-12.
 expect_golden <- function(new, old, label = deparse(substitute(new))) {
   if (identical(new, old)) return(expect_identical(new, old))
   if (golden_platform()) return(expect_identical(new, old, label = label))
