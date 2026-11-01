@@ -1,0 +1,21 @@
+Outlook calibration tables for the SNOTEL dataset (mco-snotel), copied byte for
+byte from mt-climate-office/mco-snotel, branch `outlook`, commit
+bb8d06a5703af8db21b8dc7d2f4ab3e20ef44917 (2026-11-01):
+
+  outlook_alpha.csv   <- config/outlook_alpha.csv
+                         md5 e344c14162827a0b6b0ae7ac1c792b19
+                         persistence shape alpha by period (30yr, snodas, por),
+                         flavor (zig_smooth) and cycle day 1-365 (Oct 1 = 1)
+  outlook_spread.csv  <- config/outlook_spread.csv
+                         md5 886461f5c26c3dd148b11f8aa14d9615
+                         spread factor beta by period
+
+Both were calibrated on 2026-11-01 from an out-of-sample hindcast of 120 SNOTEL
+stations (mco-snotel scripts/outlook-hindcast.R and scripts/outlook-calibrate.R,
+now data-raw/outlook-hindcast.R and data-raw/outlook-calibrate.R here). Each
+file's comment header records the method.
+
+They are dataset calibrations, not package constants: the outlook functions
+take alpha and beta as arguments and never read these files. They are here for
+the tests and as the reference copy for the hindcast scripts. A pipeline reads
+its own copy (mco-snotel config/) and records its md5 in provenance.
