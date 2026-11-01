@@ -40,6 +40,10 @@ test_that("SNOTEL normals, smoothed fit and percentiles match mco-snotel, every 
                          smoothed_mask = "min_valid")
     got <- snotel_legacy_normals(res$normals[res$normals$date %in% fx$keep_dates, ])
     expect_golden(got, ex$normals, label = paste(period, "normals"))
+    # Flavor by flavor too, so a platform difference is located.
+    for (fl in unique(ex$normals$flavor))
+      expect_golden(got[got$flavor == fl, ], ex$normals[ex$normals$flavor == fl, ],
+                    label = paste(period, fl, "normals"))
 
     tabs <- smooth_tables(res$smooth, subjects)
     expect_golden(tabs$coef, ex$coef, label = paste(period, "coef"))
