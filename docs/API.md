@@ -276,7 +276,7 @@ package to install.
 | `plot_legend_theme()` | `snodas_legend_theme()` |
 | `plot_logo(which)` | `snodas_logo()` (`"mco"`, resampled to 400 px tall) and `snodas_umt_logo()` (`"umt"`), read once per session from `system.file("plot", "mco_logo.png" / "umt_logo.png", package = "normals")` |
 | `plot_logo_grob(img, height, ...)` | `snodas_logo_grob()`; class `normals_logo`, whose `makeContent()` method is registered (`S3method(grid::makeContent, normals_logo)`) |
-| `plot_current_legend(obs_lwd)` | `snodas_current_legend()` |
+| `plot_current_legend(obs_lwd, likely_range = FALSE)` | `snodas_current_legend()`; with `likely_range = TRUE`, mco-snotel `snotel_outlook_legend()` |
 | `plot_legend_row(g)` | `snodas_legend_row()` |
 | `plot_palette()` | `snodas_palette()`, from `system.file("plot", "plot_palette.png", package = "normals")` |
 | `plot_quantize(nr)` | `snodas_quantize()` |
