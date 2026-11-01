@@ -228,8 +228,9 @@ spec §8 `percentiles` schema.
 
 The outlook of mco-snotel `outlook:R/outlook.R`, made independent of stations and of the
 normals table: it takes `normals_dist` objects, so it serves zones and other families. The α and
-β tables are arguments (spec §11); reading `config/outlook_alpha.csv` and
-`config/outlook_spread.csv` stays in the pipeline.
+β tables are arguments (spec §11), so a pipeline always names the table it uses. The calibrated
+tables ship in `inst/extdata/` (`outlook_alpha.csv`, `outlook_spread.csv`, with `PROVENANCE`);
+pipelines read them with `system.file("extdata", …, package = "normals")`.
 
 ```r
 outlook_control(k_max = 3, fit_lags = c(3, 7, 14, 21, 30, 45, 60, 90, 120),
@@ -257,8 +258,7 @@ Today's constants (`OUTLOOK_K_MAX`, `OUTLOOK_FIT_LAGS`, `OUTLOOK_POOL_DAYS`,
 
 The hindcast driver and the α / β calibration (mco-snotel `outlook:scripts/outlook-hindcast.R`,
 `outlook-calibrate.R`) move to `data-raw/` as scripts built on these functions. They take a
-dataset's record and write a CSV for the pipeline's `config/`; the tables themselves are not
-package data.
+dataset's record and write the CSVs in `inst/extdata/`.
 
 ### 3.9 Plot helpers (`R/plot.R`)
 
@@ -431,7 +431,7 @@ pipeline's `min_valid` (D3).
 | `normals_years(sm, wy, period)` | stays in the pipeline (it clips to the archive's first year, P2) |
 | `calc_station_normals(sm, wy, period, cores)` | `res <- normals_table(ref = \(d) reference_record(rec, d, years, "wy"), dates = year_dates(wy, "wy"), subjects = tibble(triplet = rec$subjects), family = zig, year_type = "wy", min_valid = min_valid_years(length(years), 10), fallback = c(fitted = "empirical", smoothed = "empirical"), smoothed_mask = "min_valid", cores = cores)`; `smooth_tables(res$smooth, subjects)` for `zig_smooth_coef` / `_diagnostics` |
 | `calc_station_percentiles(sm, obs, normals, years)` | `percentiles_table(normals, ref, subjects, obs = rename(obs, value = wteq), family = zig, min_valid = mv, fallback = c(fitted = "empirical", smoothed = "empirical"), ptile_digits = 2)` |
-| `outlook_alpha(period, dates)` | `outlook_alpha_at(alpha_tbl[alpha_tbl$period == period & alpha_tbl$flavor == "zig_smooth", ], dates, "wy")` (the pipeline reads the CSV) |
+| `outlook_alpha(period, dates)` | `outlook_alpha_at(alpha_tbl[alpha_tbl$period == period & alpha_tbl$flavor == "zig_smooth", ], dates, "wy")` (`alpha_tbl` read from the package's `inst/extdata/outlook_alpha.csv`) |
 | `outlook_spread_beta(period)` | stays in the pipeline (reads `config/outlook_spread.csv`); passes `beta` |
 | `outlook_spread_k()`, `outlook_params()`, `outlook_cdf()`, `outlook_p_zero()`, `outlook_quantiles()`, `outlook_anchor()` | `outlook_spread()`, `outlook_start()`, `dist_cdf()`, `outlook_p_zero()`, `outlook_quantiles()` (internal pieces otherwise) |
 | `outlook_correlations()` + `outlook_fit_lengths()` + `outlook_lengths(sm, normals, years, period)` | `outlook_lengths(dists = <smoothed normals_dist per date>, dates, subjects, alpha = outlook_alpha_at(…))`, then `flavor = "zig_smooth"` added at the edge |
