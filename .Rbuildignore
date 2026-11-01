@@ -1,5 +1,8 @@
 ^normals\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^vignettes/articles$
 ^docs$
+^data-raw$
+^\.github$
+^\.git$
+^src/\.gitkeep$
