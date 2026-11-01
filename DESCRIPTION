@@ -30,6 +30,7 @@ Suggests:
     fastpng,
     ggplot2,
     gtable,
+    lubridate,
     patchwork,
     png,
     ragg,
