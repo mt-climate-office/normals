@@ -75,6 +75,7 @@ export(year_dates)
 export(year_of)
 export(year_start)
 export(zig_control)
+importFrom(Rcpp,sourceCpp)
 importFrom(grDevices,
   dev.size,
   rgb
@@ -93,3 +94,4 @@ importFrom(stats,
 )
 importFrom(tibble,tibble)
 importFrom(utils,read.csv)
+useDynLib(normals, .registration = TRUE)

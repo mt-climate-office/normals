@@ -31,3 +31,14 @@ inst/doc
 /docs/mca_v2/.quarto/
 scratch.r
 .DS_Store
+# Downloaded inputs for data-raw/make-fixtures.R (read-only copies of
+# production objects; never committed)
+data-raw/cache/
+# Compiled code
+src/*.o
+src/*.so
+src/*.dll
+# The 50 x 50 pixel fixture, a release asset (data-raw/make-fixtures.R --large)
+data-raw/fixtures-large/
+# R CMD build / check scratch
+.check/

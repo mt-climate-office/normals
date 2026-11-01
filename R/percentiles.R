@@ -16,8 +16,25 @@
 #' @return `as_ptile()`: double. `standardize()`: double, or integer for
 #'   `as = "hundredths"`.
 #' @export
-as_ptile <- function(p, digits) not_implemented()
+as_ptile <- function(p, digits) {
+  if (!is.numeric(p)) stop_arg("p", "must be numeric")
+  check_whole(digits, "digits", single = TRUE)
+  round(p * 100, digits)
+}
 
 #' @rdname as_ptile
 #' @export
-standardize <- function(p, method, as, z_max = 4) not_implemented()
+standardize <- function(p, method, as, z_max = 4) {
+  if (!is.numeric(p)) stop_arg("p", "must be numeric")
+  check_choice(method, c("acklam", "qnorm"), "method")
+  check_choice(as, c("z", "hundredths"), "as")
+  if (!is.numeric(z_max) || length(z_max) != 1L || is.na(z_max) || z_max <= 0)
+    stop_arg("z_max", "must be a positive number")
+  if (method == "qnorm") {
+    if (as != "z") stop_arg("as", "must be \"z\" with `method = \"qnorm\"`")
+    return(pmin(pmax(stats::qnorm(p), -z_max), z_max))
+  }
+  # mco-snodas qnorm_grid(p * 100): integer hundredths; / 100 for z.
+  h <- cpp_qnorm_grid(as.double(p * 100), as.double(z_max))
+  if (as == "hundredths") h else h / 100
+}
