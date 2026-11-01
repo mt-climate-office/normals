@@ -1,0 +1,8 @@
+# Outlook spread dependence on the starting z, by reference period:
+# the spread is multiplied by k = exp(-beta * rho * min(z0, 0)), at most 3, so
+# stations starting below normal get a wider range while persistence holds.
+# Calibrated from the hindcast (scripts/outlook-hindcast.R, scripts/outlook-calibrate.R; 2026-11-01).
+period,beta
+30yr,0.25
+snodas,0.25
+por,0.25

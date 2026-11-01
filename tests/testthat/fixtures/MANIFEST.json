@@ -1,0 +1,73 @@
+{
+  "created": "2026-11-01T22:24:13Z",
+  "generator": "data-raw/make-fixtures.R",
+  "sources": {
+    "mco-snodas": {
+      "commit": "9b45d74",
+      "checkout": "9b45d74b17411de5ecaed5655f58b5538d919d5e",
+      "files": ["src/*.cpp", "src/ecdf_impl.h", "R/utils.R", "R/calc_snodas_zig_spline_normals.R", "R/calc_zonal_normals.R", "R/normals_annual.R (annual_fit_zonal, spline_fit_dates, annual_reference_dates)", "R/pipeline_sync.R (normals_reference_years)"]
+    },
+    "mco-snotel": {
+      "commit": "f39fe56",
+      "checkout": "9df47755e1f789d8a63101a97030439916a66e4c",
+      "files": ["src/*.cpp", "src/ecdf_impl.h", "R/utils.R", "R/zig_spline_normals.R", "R/normals.R"]
+    }
+  },
+  "inputs": {
+    "snotel": ["s3://mco-snotel/normals/reference/wy2027.parquet", "s3://mco-snotel/archive/snotel.parquet"],
+    "zonal": "s3://mco-snodas/normals/zonal/wbd/raw/{d}/{d}_raw_{swe,hypsomeswe}_means.parquet, d in WY2026",
+    "pixels": "synthetic, tests/testthat/helper-grid.R",
+    "input_md5": {
+      "data-raw/cache/snotel_reference_wy2027.parquet": "c7d49aee9a30a03ecd8016c8be081d79",
+      "data-raw/cache/snotel_archive.parquet": "d6ecb7ea3f6e8d570aef56004c6a09eb"
+    }
+  },
+  "platform": {
+    "image": "rocker/r-ver:4.5.3@sha256:f5a72ffeea7ed592b2a5990f87101beef8ef3cae0e4ff7327088e80368f0aef9 + data-raw/fixtures.Dockerfile",
+    "R": "R version 4.5.3 (2026-03-11)",
+    "platform": "x86_64-pc-linux-gnu",
+    "os": "Ubuntu 24.04.5 LTS",
+    "blas": "/usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3",
+    "lapack": "/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so",
+    "la_version": "3.12.0",
+    "openblas": {
+      "coretype": "Nehalem",
+      "num_threads": "1",
+      "omp_num_threads": "1"
+    },
+    "cpu": "VirtualApple @ 2.50GHz",
+    "repos": "https://p3m.dev/cran/__linux__/noble/2026-04-23",
+    "compiler": "g++ -std=gnu++17",
+    "packages": {
+      "Rcpp": "1.1.1.1",
+      "RcppArmadillo": "15.2.6.1",
+      "mgcv": "1.9.4",
+      "arrow": "23.0.1.2",
+      "terra": "1.9.11",
+      "dplyr": "1.2.1",
+      "lubridate": "1.9.5"
+    }
+  },
+  "comparison": "identical() on the fixture platform (platform.rds: R, architecture, BLAS, LAPACK, OpenBLAS kernel and threads). Elsewhere, the smoothed outputs (through the spline's linear algebra) are skipped; the empirical, fitted and percentile outputs are compared everywhere, identical() first, else within 1e-12 relative (API.md section 7).",
+  "fixtures": {
+    "snotel.rds": {
+      "bytes": 589316,
+      "sha256": "d25dd421d5ab0edfcc60a04b744a4d5c5ceb8dc924696205a160de2e7b64774a"
+    },
+    "zonal.rds": {
+      "bytes": 500492,
+      "sha256": "c47053dedb12b605600333b85b401d1e3eeec0a87a99202bfb01a6b1c1503db2"
+    },
+    "grid.rds": {
+      "bytes": 577700,
+      "sha256": "f1d84942039a4a2dd65cb4dc5eba1a34a438213a8a27d6dc59413e8b41d04da1"
+    }
+  },
+  "release_assets": {
+    "grid50.rds": {
+      "bytes": 3446212,
+      "sha256": "d29366b89d7e4d1f3c7ddbd10005f46034715f5056070dc1e8d2fdbb7a5b194f",
+      "url": "https://github.com/mt-climate-office/normals/releases/download/fixtures-v1/grid50.rds"
+    }
+  }
+}

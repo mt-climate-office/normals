@@ -1,0 +1,58 @@
+# R CMD check on the pinned fixture platform (API.md section 7): the job runs
+# inside rocker/r-ver 4.5.3 by digest (the mco-snotel base image), with CRAN
+# from the image's dated P3M snapshot and OpenBLAS single-threaded with its
+# kernel pinned, so the golden tests compare every output with identical().
+# data-raw/fixtures.Dockerfile builds the same platform locally. Actions are
+# pinned to release tags. To move forward, change the digest, the fixtures
+# and data-raw/fixtures.Dockerfile together.
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+    branches: [main, v2]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container:
+      image: rocker/r-ver:4.5.3@sha256:f5a72ffeea7ed592b2a5990f87101beef8ef3cae0e4ff7327088e80368f0aef9
+    env:
+      OPENBLAS_NUM_THREADS: 1
+      OMP_NUM_THREADS: 1
+      OPENBLAS_CORETYPE: Nehalem
+      NOT_CRAN: true
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: System libraries (runtime libraries of the packages' binaries)
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libpng16-16t64 libfreetype6 libfontconfig1 libharfbuzz0b libfribidi0 \
+            libtiff6 libjpeg-turbo8 libwebp7 libwebpmux3 libcurl4t64
+          rm -rf /var/lib/apt/lists/*
+
+      - name: R packages (the image's P3M snapshot)
+        run: |
+          Rscript -e 'getOption("repos"); sessionInfo()'
+          Rscript -e 'install.packages(c("Rcpp", "RcppArmadillo", "tibble", "testthat", "lubridate", "curl",
+                        "fastpng", "ggplot2", "gtable", "patchwork", "png", "ragg", "scales", "systemfonts"))'
+
+      - name: R CMD build
+        run: R CMD build .
+
+      - name: R CMD check (warnings are errors)
+        run: |
+          R CMD check --no-manual normals_*.tar.gz || { cat normals.Rcheck/tests/testthat.Rout* 2>/dev/null; exit 1; }
+          if grep -q "WARNING" normals.Rcheck/00check.log; then exit 1; fi
+          grep -A2 "SKIP\|Skipped" normals.Rcheck/tests/testthat.Rout || true
