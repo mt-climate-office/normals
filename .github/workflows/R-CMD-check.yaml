@@ -34,18 +34,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
-      - name: System libraries (runtime libraries of the plot packages' binaries)
+      - name: System libraries (runtime libraries of the packages' binaries)
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
             libpng16-16t64 libfreetype6 libfontconfig1 libharfbuzz0b libfribidi0 \
-            libtiff6 libjpeg-turbo8 libwebp7 libwebpmux3
+            libtiff6 libjpeg-turbo8 libwebp7 libwebpmux3 libcurl4t64
           rm -rf /var/lib/apt/lists/*
 
       - name: R packages (the image's P3M snapshot)
         run: |
           Rscript -e 'getOption("repos"); sessionInfo()'
-          Rscript -e 'install.packages(c("Rcpp", "RcppArmadillo", "tibble", "testthat", "lubridate",
+          Rscript -e 'install.packages(c("Rcpp", "RcppArmadillo", "tibble", "testthat", "lubridate", "curl",
                         "fastpng", "ggplot2", "gtable", "patchwork", "png", "ragg", "scales", "systemfonts"))'
 
       - name: R CMD build

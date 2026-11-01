@@ -8,6 +8,7 @@ grid50_asset <- function() {
   path <- Sys.getenv("NORMALS_GRID50")
   if (!nzchar(path)) {
     skip_on_cran()
+    skip_if_not_installed("curl")
     skip_if_offline("github.com")
     path <- tempfile(fileext = ".rds")
     ok <- tryCatch(utils::download.file(url, path, mode = "wb", quiet = TRUE) == 0,
