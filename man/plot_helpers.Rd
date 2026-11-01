@@ -7,8 +7,9 @@
 \alias{plot_month_breaks}
 \alias{plot_month_labels}
 \alias{plot_legend_theme}
-\alias{plot_logo}
 \alias{plot_logo_grob}
+\alias{makeContent.normals_logo}
+\alias{plot_logo}
 \alias{plot_current_legend}
 \alias{plot_legend_row}
 \alias{plot_palette}
@@ -16,7 +17,6 @@
 \alias{plot_save_png}
 \alias{plot_conditions}
 \alias{register_plot_fonts}
-\alias{makeContent.normals_logo}
 \title{Shared plot helpers}
 \usage{
 plot_fix_frame(
@@ -33,11 +33,13 @@ plot_month_labels(x)
 
 plot_legend_theme()
 
-plot_logo(which)
-
 plot_logo_grob(img, height, ...)
 
-plot_current_legend(obs_lwd)
+\method{makeContent}{normals_logo}(x)
+
+plot_logo(which)
+
+plot_current_legend(obs_lwd, likely_range = FALSE)
 
 plot_legend_row(g)
 
@@ -50,22 +52,19 @@ plot_save_png(p, file, width = 8, height = 16/3, dpi = 187.5)
 plot_conditions(value, median, ptile)
 
 register_plot_fonts()
-
-\method{makeContent}{normals_logo}(x)
 }
 \arguments{
 \item{g}{A \code{ggplotGrob()} or \code{patchworkGrob()}.}
 
 \item{axis_width, xlab_height}{Grid units.}
 
-\item{usdm}{\code{TRUE} for USDM classes. No default.}
+\item{usdm}{\code{TRUE} for USDM classes, \code{FALSE} for five percentile classes.
+No default.}
 
 \item{limits}{Date axis limits.}
 
 \item{x}{Dates to label; for the \code{makeContent()} method, a \code{normals_logo}
 grob.}
-
-\item{which}{\code{"mco"} or \code{"umt"}.}
 
 \item{img}{An image array (rows x cols x RGB[A], 0-1).}
 
@@ -73,7 +72,11 @@ grob.}
 
 \item{...}{Passed to \code{\link[grid:rasterGrob]{grid::rasterGrob()}}.}
 
+\item{which}{\code{"mco"} or \code{"umt"}.}
+
 \item{obs_lwd}{Line width of the observed series.}
+
+\item{likely_range}{\code{TRUE} to add the outlook's "Likely range" key.}
 
 \item{nr}{A \code{nativeRaster}.}
 
@@ -81,36 +84,63 @@ grob.}
 
 \item{file}{Output path.}
 
-\item{width, dpi}{Size and resolution.}
+\item{width, dpi}{Size (in) and resolution.}
 
-\item{value, median, ptile}{The basin's value, its normal's median and its
-percentile on the plotted date.}
+\item{value, median, ptile}{The value, its normal's median and its percentile
+on the plotted date.}
 }
 \description{
 The frame, bands, legends, logos and palette shared by the SNODAS and
 SNOTEL plots, so every plot reads as one set. Per-dataset plots stay in the
-pipelines and are built on these. The plotting packages (ggplot2, gtable,
-patchwork, png, ragg, fastpng, scales, systemfonts) are suggested, not
-imported; each helper stops with the package to install.
+pipelines and are built on these. Ported from mco-snodas \code{R/plot.R} at
+62fe19a (through \code{snodas_conditions()}); a plot drawn with these helpers is
+pixel-identical to one drawn with that code. The plotting packages
+(ggplot2, gtable, patchwork, png, ragg, fastpng, scales, systemfonts) are
+suggested, not imported; each helper stops with the package to install.
 }
 \details{
 \itemize{
 \item \code{plot_fix_frame()}: pins the left axis column and x-axis title row of a
 ggplot or patchwork grob, so panels sit in the same place on every plot.
+\code{axis_width}: 0.45 in fits the widest 8.8 pt tick labels plus tick and
+margin. \code{xlab_height}: a bold 11 pt title needs 0.18 in.
 \item \code{plot_bands()}: the normal-condition bands, USDM classes (\code{usdm = TRUE})
-or five percentile classes, with breaks, colors and legend keys.
-\item \code{plot_month_breaks()}, \code{plot_month_labels()}: a monthly date axis.
+or five percentile classes: a list of \code{bands} (quantile column pairs),
+\code{breaks} (percentile classes), \code{colors}, \code{legend} (keys) and \code{ncol}. The
+outer limits are the 1st and 99th percentiles for every flavor.
+\item \code{plot_month_breaks()}, \code{plot_month_labels()}: a monthly date axis, a tick
+on the first of every month, labelled with the month and the year under it.
 \item \code{plot_legend_theme()}: legend sizing shared by every plot.
-\item \code{plot_logo()}: the MCO (\code{"mco"}) or University of Montana (\code{"umt"}) logo,
-read once per session from the package's \verb{inst/plot/}.
-\item \code{plot_logo_grob()}: a logo grob that resamples itself to the device
-resolution when drawn (its \code{makeContent()} method is registered).
-\item \code{plot_current_legend()}: the "Current Conditions" key.
-\item \code{plot_legend_row()}: rebuilds the bottom legend row with the logos.
-\item \code{plot_palette()}, \code{plot_quantize()}, \code{plot_save_png()}: 8-bit palette
-PNGs on one fixed 256-color palette.
-\item \code{plot_conditions()}: the subtitle's "\% of Median (~Nth Percentile)" text.
-\item \code{register_plot_fonts()}: makes "Helvetica" available (Nimbus Sans on
-Linux).
+\item \code{plot_logo()}: the MCO (\code{"mco"}, shrunk to 400 px tall) or University of
+Montana (\code{"umt"}) logo, read once per session from the package's
+\verb{inst/plot/}.
+\item \code{plot_logo_grob()}: a logo \code{height} inches tall that resamples itself
+(area-averaged, alpha-weighted) to the device resolution when it is drawn,
+so its edges are clean at any resolution. Its \code{makeContent()} method is
+registered.
+\item \code{plot_current_legend()}: the "Current Conditions" key: Observed (solid,
+black) over Median (dashed, gray). Both keys show on every plot, so the
+legend row is the same from day to day. With \code{likely_range = TRUE}, a
+third key, "Likely range" (a gray15 fill at alpha 0.22, as mco-snotel draws
+the outlook), sits beside them and the row keeps its two-row height.
+\item \code{plot_legend_row()}: rebuilds the bottom legend row: the first key (normal
+conditions) centred on the figure, the MCO logo centred to its left and
+the other keys centred to its right; adds the University of Montana logo
+at the top right. Returns the grob wrapped by
+\code{\link[patchwork:wrap_elements]{patchwork::wrap_elements()}}, so it prints like a ggplot.
+\item \code{plot_palette()}: the fixed 256-color palette every plot is written with
+(\code{rgb}, a 256 x 3 matrix, and \code{hex}). One palette makes the shared parts
+pixel-identical across plots and animation frames.
+\item \code{plot_quantize()}: 0-based palette indices (rows x cols) for a
+\code{nativeRaster}, each color to its nearest palette color (RGB distance, no
+dithering). Matches are remembered for the session.
+\item \code{plot_save_png()}: draws a plot in memory with ragg, quantizes it to the
+palette and writes an 8-bit palette PNG with fastpng (1500 x 1000 at the
+defaults). Returns \code{file}, invisibly.
+\item \code{plot_conditions()}: the subtitle's "\% of Median (~Nth Percentile)" text,
+or "No snow (typical for this date)" / "No normal for this date".
+\item \code{register_plot_fonts()}: makes "Helvetica" available to systemfonts (and
+so ragg). macOS has it; on Linux, Nimbus Sans (fonts-urw-base35) is
+registered under that name, with a warning if neither is installed.
 }
 }
