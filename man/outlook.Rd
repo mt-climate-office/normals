@@ -111,7 +111,7 @@ per date (\code{outlook_lengths()}).}
 
 \item{issue_date}{The issue date.}
 
-\item{subjects}{Data frame of subject key columns.}
+\item{subjects}{Data frame of subject key columns, one row per subject.}
 
 \item{dists}{List of \code{normals_dist}, one per date of the normals year.}
 
@@ -120,6 +120,13 @@ per date (\code{outlook_lengths()}).}
 \item{y}{Outcomes, length n.}
 
 \item{u}{Uniform draws for zero outcomes, length n.}
+}
+\value{
+\code{outlook_control()}: a list. \code{outlook_start()}: \code{list(z0, anchor, floor)}. \code{outlook_quantiles()}: an n x m matrix, unrounded. \code{outlook()}:
+a tibble (\code{date}, subject columns, \code{q0000} ... \code{q1000}, \code{p_zero}), or
+\code{NULL} when there is no target date or no value today.
+\code{outlook_lengths()}: a tibble (\code{date}, subject columns, \code{outlook_length},
+\code{outlook_alpha}). The others: double vectors.
 }
 \description{
 Today's value is placed in its day's distribution (z0, clamped), and that
@@ -136,8 +143,15 @@ the normals:
 (\code{outlook_start()}).
 }
 
-For zero-mass families, a fitted p_zero below \code{p_zero_floor} / n_valid is
-taken as zero for subjects with a positive value today, and
+z is the exact \code{stats::qnorm()} of the percentile, unrounded, clamped to
++/- \code{z_max} (not the Acklam approximation of the published standardized
+values).
+
+For zero-mass families whose parameters include \code{p_zero}, a p_zero below
+\code{p_zero_floor} / n_valid is taken as zero for subjects with a positive value
+today (a smoothed fit never reaches exactly zero, and a record-low subject
+would otherwise be placed on that sliver and read as zero). A subject at
+zero today keeps the fitted chance, so it starts in the zero mass.
 \code{outlook_p_zero()} gives the chance of exactly zero on each target date.
 
 The alpha table (persistence shape by cycle day) and beta (spread) are per
@@ -146,4 +160,8 @@ the caller has already filtered to one period and flavor. \code{outlook_lengths(
 fits the persistence length per subject and date from the reference years.
 \code{outlook()} composes the pieces for one issue date. \code{outlook_crps()} and
 \code{outlook_pit()} score hindcasts.
+
+The issue and target distributions need their reference matrix (\code{ref}):
+n_valid for the floor, the empirical fallback, and (in \code{outlook_lengths()})
+the reference years' own values come from it.
 }
