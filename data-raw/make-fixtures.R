@@ -187,7 +187,7 @@ g1_zonal <- zonal_dates[format(zonal_dates, "%m-%d") %in% c(G1_DAYS, "02-28")]
 raw_dir <- file.path(WORK, "normals/zonal/wbd/raw")
 NAN_BAND <- 7000   # swe_elevation (ft) of the band set to NaN in 2004-2006
 nan_cols <- function(cols) {
-  dts <- suppressWarnings(as.Date(cols))
+  dts <- as.Date(cols, format = "%Y-%m-%d", optional = TRUE)
   !is.na(dts) & as.integer(format(dts, "%Y")) + (as.integer(format(dts, "%m")) >= 10) %in% 2004:2006
 }
 raw_swe  <- list()

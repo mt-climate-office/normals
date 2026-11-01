@@ -1,5 +1,5 @@
 {
-  "created": "2026-11-01T21:24:30Z",
+  "created": "2026-11-01T21:30:10Z",
   "generator": "data-raw/make-fixtures.R",
   "sources": {
     "mco-snodas": {
@@ -45,6 +45,10 @@
     "snotel.rds": {
       "bytes": 589128,
       "sha256": "6f16499cc5659cdcb89b1fc09110878379804a23bef22d0b6719312e48d60da7"
+    },
+    "zonal.rds": {
+      "bytes": 511856,
+      "sha256": "ff09f560bc57c8939e532188824c997fd7eab3a4c59292d949541513fbac37d4"
     },
     "grid.rds": {
       "bytes": 576172,

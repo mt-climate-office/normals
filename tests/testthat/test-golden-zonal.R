@@ -1,10 +1,15 @@
 # mco-snodas zonal normals (calc_zonal_normals(), annual_fit_zonal()):
 # API.md 6.2, the matrix-level calls, per G1 date and level.
 
+# A raw table's reference columns (before the water year) and its latest
+# current-year column (NULL if none), as calc_zonal_normals() splits them.
 zonal_hist <- function(x, wy_start) {
-  cols <- names(x)[!is.na(suppressWarnings(as.Date(names(x), optional = TRUE)))]
-  list(hist = as.matrix(x[, cols[as.Date(cols) < wy_start], drop = FALSE]),
-       current = as.numeric(x[[cols[as.Date(cols) >= wy_start][sum(as.Date(cols) >= wy_start)]]]))
+  dts  <- as.Date(names(x), format = "%Y-%m-%d", optional = TRUE)
+  cols <- names(x)[!is.na(dts)]
+  dts  <- dts[!is.na(dts)]
+  cur  <- cols[dts >= wy_start]
+  list(hist = as.matrix(x[, cols[dts < wy_start], drop = FALSE]),
+       current = if (length(cur)) as.numeric(x[[cur[length(cur)]]]))
 }
 
 test_that("zonal ECDF, ZIG and ZIG-smooth normals and percentiles match mco-snodas", {
