@@ -66,7 +66,29 @@ same_as <- function(repo, sha, files)
     length(git(repo, "status", "--porcelain", "--", files)) == 0L
 stopifnot(same_as(SNODAS, SNODAS_SHA, SNODAS_FILES), same_as(SNOTEL, SNOTEL_SHA, SNOTEL_FILES))
 
+# Plain R vectors: arrow::read_parquet() returns ALTREP vectors whose
+# serialization needs arrow to read back.
+materialize <- function(x) {
+  if (is.list(x)) {
+    a <- attributes(x)
+    if (!is.null(a)) a <- lapply(a, materialize)
+    x <- lapply(x, materialize)
+    attributes(x) <- a
+    return(x)
+  }
+  if (!is.atomic(x) || is.null(x)) return(x)
+  a <- attributes(x)
+  if (!is.null(a)) a <- lapply(a, materialize)   # e.g. a factor's levels
+  out <- vector(typeof(x), length(x))   # a fresh, ordinary vector
+  out[] <- unclass(x)
+  attributes(out) <- a
+  out
+}
+
 save_fixture <- function(x, name) {
+  x <- materialize(x)
+  bytes <- serialize(x, NULL)
+  stopifnot(length(grepRaw("arrow", bytes)) == 0L)
   path <- file.path(FIX, paste0(name, ".rds"))
   saveRDS(x, path, version = 3, compress = "xz")
   message("  wrote ", path, " (", format(file.size(path) / 1024, digits = 3), " KiB)")
@@ -355,7 +377,7 @@ message("SNODAS pixels")
 grid_path <- save_fixture(grid_fixture_for(20L, 20L), "grid")
 if (LARGE) {
   dir.create("data-raw/fixtures-large", showWarnings = FALSE)
-  saveRDS(grid_fixture_for(50L, 50L), large, version = 3, compress = "xz")
+  saveRDS(materialize(grid_fixture_for(50L, 50L)), large, version = 3, compress = "xz")
   message("  wrote ", large, " (", format(file.size(large) / 2^20, digits = 3), " MiB)")
   saveRDS(sub(" .*", "", system2("shasum", c("-a", "256", shQuote(large)), stdout = TRUE)),
           file.path(FIX, "grid50-sha256.rds"), version = 3)

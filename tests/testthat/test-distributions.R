@@ -299,9 +299,15 @@ test_that("4-6: zig_spline_params: Hosking shape, scale = l1 / shape, clamp, sta
   expect_equal(pr$p_zero[1, ], rep(plogis(-3), 365))
   expect_equal(pr$shape[2, ], rep(zig_shape_from_lcv(ZIG_SMOOTH_LCV_RANGE[2]), 365))
   expect_true(all(pr$p_zero[3, ] == 1))
-  # smooth_eval() is the same evaluation, one position at a time.
+  # smooth_eval() is the same evaluation one position (basis row) at a time,
+  # as the pipelines evaluate it per date. (All rows at once can differ in
+  # the last bit under some BLAS, so it is compared within 1e-12 here.)
   fit <- structure(list(coef = coefs, status = c(0L, 0L, 1L), k = k, family = legacy_zig),
                    class = "normals_smooth")
   ev <- smooth_eval(fit, 1:365)
-  expect_identical(ev, pr)
+  for (j in c(1L, 151L, 365L)) {
+    one <- zig_spline_params(coefs, SPLINE_B$X[j, , drop = FALSE], status = c(0L, 0L, 1L))
+    for (p in names(one)) expect_identical(ev[[p]][, j], one[[p]][, 1])
+  }
+  expect_equal(ev, pr, tolerance = 1e-12)
 })

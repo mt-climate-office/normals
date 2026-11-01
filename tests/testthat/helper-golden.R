@@ -38,7 +38,7 @@ golden_rel_diff <- function(new, old) {
   if (!identical(is.na(new), is.na(old)) || !identical(is.nan(new), is.nan(old))) return(NA_real_)
   ok <- !is.na(old)
   if (!any(ok)) return(0)
-  a <- new[ok]; b <- old[ok]
+  a <- unclass(new)[ok]; b <- unclass(old)[ok]
   if (!identical(is.infinite(a), is.infinite(b)) || any(a[is.infinite(a)] != b[is.infinite(b)]))
     return(NA_real_)
   f <- is.finite(b)

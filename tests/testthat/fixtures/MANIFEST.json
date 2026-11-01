@@ -1,5 +1,5 @@
 {
-  "created": "2026-11-01T21:30:10Z",
+  "created": "2026-11-01T21:44:49Z",
   "generator": "data-raw/make-fixtures.R",
   "sources": {
     "mco-snodas": {
@@ -43,12 +43,12 @@
   "comparison": "identical() on the fixture's platform. On another platform, results that pass through linear algebra or libm may differ in the last bits: the tests report the largest relative difference and fail above 1e-12 (API.md section 7).",
   "fixtures": {
     "snotel.rds": {
-      "bytes": 589128,
-      "sha256": "6f16499cc5659cdcb89b1fc09110878379804a23bef22d0b6719312e48d60da7"
+      "bytes": 588880,
+      "sha256": "a1f2c767833d1df69b9f0d131d5c655948f428c980be428d249949665bf3e269"
     },
     "zonal.rds": {
-      "bytes": 511856,
-      "sha256": "ff09f560bc57c8939e532188824c997fd7eab3a4c59292d949541513fbac37d4"
+      "bytes": 499580,
+      "sha256": "630a32db7166b0bfe0b9783bb22752a3688b04b687cd61d5d57a6fbec4f71248"
     },
     "grid.rds": {
       "bytes": 576172,
