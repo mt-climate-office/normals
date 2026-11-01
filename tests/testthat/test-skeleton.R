@@ -12,8 +12,3 @@ test_that("flavor vocabularies agree", {
   expect_identical(unname(NORMALS_FLAVORS), c("ecdf", "zig", "zig_smooth"))
   expect_identical(names(NORMALS_FLAVOR_CAPTIONS), names(NORMALS_FLAVORS))
 })
-
-test_that("stubs stop until the API is approved", {
-  expect_error(normals_table(), "not implemented")
-  expect_error(family_zig(), "not implemented")
-})

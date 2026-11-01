@@ -1,0 +1,61 @@
+{
+  "created": "2026-11-01T21:24:30Z",
+  "generator": "data-raw/make-fixtures.R",
+  "sources": {
+    "mco-snodas": {
+      "commit": "9b45d74",
+      "checkout": "9b45d74b17411de5ecaed5655f58b5538d919d5e",
+      "files": ["src/*.cpp", "src/ecdf_impl.h", "R/utils.R", "R/calc_snodas_zig_spline_normals.R", "R/calc_zonal_normals.R", "R/normals_annual.R (annual_fit_zonal, spline_fit_dates, annual_reference_dates)", "R/pipeline_sync.R (normals_reference_years)"]
+    },
+    "mco-snotel": {
+      "commit": "f39fe56",
+      "checkout": "9df47755e1f789d8a63101a97030439916a66e4c",
+      "files": ["src/*.cpp", "src/ecdf_impl.h", "R/utils.R", "R/zig_spline_normals.R", "R/normals.R"]
+    }
+  },
+  "inputs": {
+    "snotel": ["s3://mco-snotel/normals/reference/wy2027.parquet", "s3://mco-snotel/archive/snotel.parquet"],
+    "zonal": "s3://mco-snodas/normals/zonal/wbd/raw/{d}/{d}_raw_{swe,hypsomeswe}_means.parquet, d in WY2026",
+    "pixels": "synthetic, tests/testthat/helper-grid.R",
+    "input_md5": {
+      "data-raw/cache/snotel_reference_wy2027.parquet": "c7d49aee9a30a03ecd8016c8be081d79",
+      "data-raw/cache/snotel_archive.parquet": "d6ecb7ea3f6e8d570aef56004c6a09eb"
+    }
+  },
+  "platform": {
+    "R": "R version 4.6.1 (2026-06-24)",
+    "platform": "aarch64-apple-darwin23",
+    "os": "macOS Golden Gate 27.0.1",
+    "blas": "/Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib",
+    "lapack": "/Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib",
+    "la_version": "3.12.1",
+    "compiler": "clang++ -arch arm64 -std=gnu++20",
+    "packages": {
+      "Rcpp": "1.1.2",
+      "RcppArmadillo": "15.4.2.1",
+      "mgcv": "1.9.4",
+      "arrow": "25.0.1",
+      "terra": "1.9.46",
+      "dplyr": "1.2.1",
+      "lubridate": "1.9.5"
+    }
+  },
+  "comparison": "identical() on the fixture's platform. On another platform, results that pass through linear algebra or libm may differ in the last bits: the tests report the largest relative difference and fail above 1e-12 (API.md section 7).",
+  "fixtures": {
+    "snotel.rds": {
+      "bytes": 589128,
+      "sha256": "6f16499cc5659cdcb89b1fc09110878379804a23bef22d0b6719312e48d60da7"
+    },
+    "grid.rds": {
+      "bytes": 576172,
+      "sha256": "f6b931b50ca5a43be3ba51dcf8ee7dc0b4c7446cc38b90267017325ad98125d3"
+    }
+  },
+  "release_assets": {
+    "grid50.rds": {
+      "bytes": 3445584,
+      "sha256": "be3ae591d3635e97ce209f8f010b86c787d8a9c1743e9407775a4222f7f2a922",
+      "url": "https://github.com/mt-climate-office/normals/releases/download/fixtures-v1/grid50.rds"
+    }
+  }
+}

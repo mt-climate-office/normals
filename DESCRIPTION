@@ -23,9 +23,13 @@ Imports:
     grid,
     mgcv,
     parallel,
+    Rcpp,
     stats,
     tibble,
     utils
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
 Suggests:
     fastpng,
     ggplot2,

@@ -41,7 +41,16 @@ NORMALS_FLAVOR_CAPTIONS <- c(empirical = "Empirical History",
 #' @return Character vector, the same length as `x`. Unknown names are an
 #'   error.
 #' @export
-flavor_legacy <- function(x, to) not_implemented()
+flavor_legacy <- function(x, to) {
+  check_choice(to, c("legacy", "spec"), "to")
+  if (!is.character(x)) stop_arg("x", "must be a character vector")
+  map <- if (to == "legacy") NORMALS_FLAVORS else stats::setNames(names(NORMALS_FLAVORS), NORMALS_FLAVORS)
+  bad <- !is.na(x) & !x %in% names(map)
+  if (any(bad))
+    stop("normals: unknown flavor name(s) for `to = \"", to, "\"`: ",
+         paste(unique(x[bad]), collapse = ", "), call. = FALSE)
+  unname(map[x])
+}
 
 #' Quantile column names
 #'
@@ -49,4 +58,13 @@ flavor_legacy <- function(x, to) not_implemented()
 #' @return `sprintf("q%04d", round(probs * 1000))`. An error if two
 #'   probabilities give the same name.
 #' @export
-quantile_columns <- function(probs = NORMALS_QUANTILES) not_implemented()
+quantile_columns <- function(probs = NORMALS_QUANTILES) {
+  probs <- unname(probs)
+  if (!is.numeric(probs) || anyNA(probs) || any(probs < 0 | probs > 1))
+    stop_arg("probs", "must be probabilities in [0, 1]")
+  out <- sprintf("q%04d", round(probs * 1000))
+  if (anyDuplicated(out))
+    stop_arg("probs", "has probabilities that share a column name: ",
+             paste(unique(out[duplicated(out)]), collapse = ", "))
+  out
+}

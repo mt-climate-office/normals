@@ -14,8 +14,33 @@
 #' @return `day_stats()`: n x s matrix, columns `family$stats_names`.
 #'   `fit_day()`: n x p matrix, columns `family$params`.
 #' @export
-day_stats <- function(ref, family) not_implemented()
+day_stats <- function(ref, family) {
+  check_family(family)
+  check_matrix(ref, "ref")
+  if (is.null(family$stats))
+    stop("normals: family \"", family$name, "\" has no daily statistics", call. = FALSE)
+  out <- family$stats(ref, family$control)
+  colnames(out) <- family$stats_names
+  out
+}
 
 #' @rdname day_stats
 #' @export
-fit_day <- function(stats, family, min_valid) not_implemented()
+fit_day <- function(stats, family, min_valid) {
+  check_family(family)
+  if (is.null(family$fit))
+    stop("normals: family \"", family$name, "\" has no fit", call. = FALSE)
+  check_matrix(stats, "stats")
+  if (!identical(colnames(stats), family$stats_names))
+    stop_arg("stats", "must have columns ", paste(family$stats_names, collapse = ", "),
+             " (day_stats())")
+  mv <- as_min_valid(min_valid, nrow(stats))
+  out <- family$fit(stats, mv, family$control)
+  colnames(out) <- family$params
+  out
+}
+
+check_family <- function(family, arg = "family") {
+  if (!is_family(family)) stop_arg(arg, "must be a normals_family")
+  invisible(family)
+}

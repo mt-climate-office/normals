@@ -23,27 +23,62 @@ NULL
 
 #' @rdname calendar
 #' @export
-year_of <- function(date, year_type) not_implemented()
+year_of <- function(date, year_type) {
+  check_date(date, "date")
+  check_year_type(year_type)
+  lt <- as.POSIXlt(date)
+  y <- lt$year + 1900L
+  if (year_type == "wy") y <- y + as.integer(lt$mon >= 9L)
+  as.integer(y)
+}
 
 #' @rdname calendar
 #' @export
-year_start <- function(year, year_type) not_implemented()
+year_start <- function(year, year_type) {
+  check_whole(year, "year")
+  check_year_type(year_type)
+  year <- as.integer(year)
+  if (year_type == "wy") make_date(year - 1L, 10L, 1L) else make_date(year, 1L, 1L)
+}
 
 #' @rdname calendar
 #' @export
-year_dates <- function(year, year_type) not_implemented()
+year_dates <- function(year, year_type) {
+  check_whole(year, "year", single = TRUE)
+  check_year_type(year_type)
+  seq(year_start(year, year_type), year_start(year + 1L, year_type) - 1L, by = "day")
+}
 
 #' @rdname calendar
 #' @export
-dates_through <- function(date, year_type) not_implemented()
+dates_through <- function(date, year_type) {
+  check_date(date, "date", single = TRUE)
+  check_year_type(year_type)
+  seq(year_start(year_of(date, year_type), year_type), date, by = "day")
+}
 
 #' @rdname calendar
 #' @export
-cycle_day <- function(date, year_type) not_implemented()
+cycle_day <- function(date, year_type) {
+  check_date(date, "date")
+  check_year_type(year_type)
+  # As mco-snodas normals_cycle_day() (wy): the day of the year, less one
+  # after Feb 29 and less a half on it.
+  yr    <- year_of(date, year_type)
+  pos   <- as.numeric(date - year_start(yr, year_type)) + 1
+  feb29 <- make_date(if (year_type == "wy") yr else yr, 2L, 29L)   # NA in non-leap years
+  leap  <- !is.na(feb29)
+  pos[leap & date >  feb29[leap]] <- pos[leap & date > feb29[leap]] - 1
+  pos[leap & date == feb29[leap]] <- pos[leap & date == feb29[leap]] - 0.5
+  pos
+}
 
 #' @rdname calendar
 #' @export
-day_key <- function(date) not_implemented()
+day_key <- function(date) {
+  check_date(date, "date")
+  format(date, "%m-%d")
+}
 
 #' Reference dates for one day
 #'
@@ -56,7 +91,19 @@ day_key <- function(date) not_implemented()
 #' @param year_type `"wy"` or `"cy"`.
 #' @return A `Date` vector of `length(years)`.
 #' @export
-reference_dates <- function(date, years, year_type) not_implemented()
+reference_dates <- function(date, years, year_type) {
+  check_date(date, "date", single = TRUE)
+  check_whole(years, "years")
+  check_year_type(year_type)
+  # date shifted back by whole years, as lubridate's %m-% years(): Feb 29
+  # rolls back to Feb 28 where the target year has none.
+  lt  <- as.POSIXlt(date)
+  cal <- lt$year + 1900L - (year_of(date, year_type) - as.integer(years))
+  out <- make_date(cal, lt$mon + 1L, lt$mday)
+  bad <- is.na(out)
+  out[bad] <- make_date(cal[bad], lt$mon + 1L, lt$mday - 1L)
+  out
+}
 
 #' Minimum valid years
 #'
@@ -68,7 +115,11 @@ reference_dates <- function(date, years, year_type) not_implemented()
 #' @param cap Integer cap. No default.
 #' @return Integer vector.
 #' @export
-min_valid_years <- function(n_years, cap) not_implemented()
+min_valid_years <- function(n_years, cap) {
+  check_whole(n_years, "n_years")
+  check_whole(cap, "cap", positive = TRUE, single = TRUE)
+  as.integer(pmax(1L, pmin(cap, n_years)))
+}
 
 #' Reference periods
 #'
@@ -98,8 +149,67 @@ min_valid_years <- function(n_years, cap) not_implemented()
 #' @export
 period_years <- function(rule, year, length = NULL, earliest = NULL,
                          periods = NULL, publish_lag = NULL,
-                         first_year = NULL) not_implemented()
+                         first_year = NULL) {
+  check_choice(rule, c("rolling", "fixed", "por"), "rule")
+  check_whole(year, "year", single = TRUE)
+  year <- as.integer(year)
+  given <- c(length = !is.null(length), earliest = !is.null(earliest),
+             periods = !is.null(periods), publish_lag = !is.null(publish_lag),
+             first_year = !is.null(first_year))
+  uses <- switch(rule,
+                 rolling = c("length", "earliest"),
+                 fixed   = c("periods", "publish_lag"),
+                 por     = "first_year")
+  extra <- names(given)[given & !names(given) %in% uses]
+  if (length(extra))
+    stop_arg(extra[1], "must be NULL for rule \"", rule, "\"")
+  switch(rule,
+    rolling = {
+      if (is.null(length)) stop_arg("length", "is required for rule \"rolling\"")
+      check_whole(length, "length", positive = TRUE, single = TRUE)
+      first <- year - as.integer(length)
+      if (!is.null(earliest)) {
+        check_whole(earliest, "earliest", single = TRUE)
+        first <- max(first, as.integer(earliest))
+      }
+      if (first > year - 1L) return(NULL)
+      first:(year - 1L)
+    },
+    fixed = {
+      if (is.null(periods) || is.null(publish_lag))
+        stop_arg(if (is.null(periods)) "periods" else "publish_lag",
+                 "is required for rule \"fixed\"")
+      if (!is.list(periods) || !all(vapply(periods, \(p) is.numeric(p) && length(p) == 2L, logical(1))))
+        stop_arg("periods", "must be a list of c(first, last)")
+      check_whole(publish_lag, "publish_lag", single = TRUE)
+      last  <- vapply(periods, \(p) as.integer(p[2]), integer(1))
+      ok    <- which(last + as.integer(publish_lag) < year)
+      if (!length(ok)) return(NULL)
+      p <- periods[[ok[which.max(last[ok])]]]
+      as.integer(p[1]):as.integer(p[2])
+    },
+    por = {
+      if (is.null(first_year)) stop_arg("first_year", "is required for rule \"por\"")
+      check_whole(first_year, "first_year", single = TRUE)
+      if (first_year > year - 1L) return(NULL)
+      as.integer(first_year):(year - 1L)
+    })
+}
 
 #' @rdname period_years
 #' @export
-period_key <- function(first, last, year_type, por = FALSE) not_implemented()
+period_key <- function(first, last, year_type, por = FALSE) {
+  check_year_type(year_type)
+  check_whole(last, "last")
+  if (!is.logical(por) || length(por) != 1L || is.na(por)) stop_arg("por", "must be TRUE or FALSE")
+  if (por) return(sprintf("%spor-%d", year_type, as.integer(last)))
+  check_whole(first, "first")
+  sprintf("%s%d-%d", year_type, as.integer(first), as.integer(last))
+}
+
+# A Date from year, month and day vectors; NA where the day does not exist
+# (Feb 29 in a non-leap year).
+make_date <- function(year, month, day) {
+  as.Date(sprintf("%04d-%02d-%02d", as.integer(year), as.integer(month), as.integer(day)),
+          optional = TRUE, format = "%Y-%m-%d")
+}
